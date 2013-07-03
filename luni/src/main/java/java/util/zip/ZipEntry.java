@@ -359,7 +359,13 @@ public class ZipEntry implements ZipConstants, Cloneable {
              throw new ZipException("Central Directory Entry not found");
         }
 
-        it.seek(10);
+        it.seek(8);
+        int gpbf = it.readShort() & 0xffff;
+
+        if ((gpbf & ZipFile.GPBF_UNSUPPORTED_MASK) != 0) {
+            throw new ZipException("Invalid General Purpose Bit Flag: " + gpbf);
+        }
+
         compressionMethod = it.readShort() & 0xffff;
         time = it.readShort() & 0xffff;
         modDate = it.readShort() & 0xffff;
@@ -372,6 +378,7 @@ public class ZipEntry implements ZipConstants, Cloneable {
         nameLength = it.readShort() & 0xffff;
         int extraLength = it.readShort() & 0xffff;
         int commentLength = it.readShort() & 0xffff;
+        int commentByteCount = it.readShort() & 0xffff;
 
         // This is a 32-bit value in the file, but a 64-bit field in this object.
         it.seek(42);

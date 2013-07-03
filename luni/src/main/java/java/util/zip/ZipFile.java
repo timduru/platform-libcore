@@ -254,11 +254,19 @@ public class ZipFile implements ZipConstants {
         RandomAccessFile raf = mRaf;
         synchronized (raf) {
             // We don't know the entry data's start position. All we have is the
-            // position of the entry's local header. At position 28 we find the
-            // length of the extra data. In some cases this length differs from
-            // the one coming in the central header.
-            RAFStream rafstrm = new RAFStream(raf, entry.mLocalHeaderRelOffset + 28);
-            DataInputStream is = new DataInputStream(rafstrm);
+            // position of the entry's local header. At position 6 we find the
+            // General Purpose Bit Flag.
+            // http://www.pkware.com/documents/casestudies/APPNOTE.TXT
+            RAFStream rafStream= new RAFStream(localRaf, entry.localHeaderRelOffset + 6);
+            DataInputStream is = new DataInputStream(rafStream);
+            int gpbf = Short.reverseBytes(is.readShort()) & 0xffff;
+            if ((gpbf & ZipFile.GPBF_UNSUPPORTED_MASK) != 0) {
+                throw new ZipException("Invalid General Purpose Bit Flag: " + gpbf);
+            }
+
+            // At position 28 we find the length of the extra data. In some cases
+            // this length differs from the one coming in the central header.
+            is.skipBytes(20);
             int localExtraLenOrWhatever = Short.reverseBytes(is.readShort()) & 0xffff;
             is.close();
 
