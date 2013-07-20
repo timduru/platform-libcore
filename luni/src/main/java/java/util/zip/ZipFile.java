@@ -79,6 +79,14 @@ public class ZipFile implements ZipConstants {
      */
     public static final int OPEN_DELETE = 4;
 
+    /**
+     * General Purpose Bit Flags, Bit 0.
+     * If set, indicates that the file is encrypted.
+     */
+    static final int GPBF_ENCRYPTED_FLAG = 1 << 0;
+
+    static final int GPBF_UNSUPPORTED_MASK = GPBF_ENCRYPTED_FLAG;
+
     private final String fileName;
 
     private File fileToDeleteOnClose;
@@ -257,8 +265,15 @@ public class ZipFile implements ZipConstants {
             // position of the entry's local header. At position 28 we find the
             // length of the extra data. In some cases this length differs from
             // the one coming in the central header.
-            RAFStream rafstrm = new RAFStream(raf, entry.mLocalHeaderRelOffset + 28);
+            RAFStream rafstrm = new RAFStream(raf, entry.mLocalHeaderRelOffset + 6);
             DataInputStream is = new DataInputStream(rafstrm);
+            int gpbf = Short.reverseBytes(is.readShort()) & 0xffff;
+            if ((gpbf & ZipFile.GPBF_UNSUPPORTED_MASK) != 0) {
+                throw new ZipException("Invalid General Purpose Bit Flag: " + gpbf);
+            }
+            // At position 28 we find the length of the extra data. In some cases
+            // this length differs from the one coming in the central header.
+            is.skipBytes(20);
             int localExtraLenOrWhatever = Short.reverseBytes(is.readShort()) & 0xffff;
             is.close();
 
