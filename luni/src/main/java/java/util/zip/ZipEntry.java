@@ -359,13 +359,13 @@ public class ZipEntry implements ZipConstants, Cloneable {
              throw new ZipException("Central Directory Entry not found");
         }
 
-        it.seek(8);
-        int gpbf = it.readShort() & 0xffff;
-
-        if ((gpbf & ZipFile.GPBF_UNSUPPORTED_MASK) != 0) {
-            throw new ZipException("Invalid General Purpose Bit Flag: " + gpbf);
-        }
-
+         it.seek(8);
+         int gpbf = it.readShort() & 0xffff;
+ 
+         if ((gpbf & ZipFile.GPBF_UNSUPPORTED_MASK) != 0) {
+             throw new ZipException("Invalid General Purpose Bit Flag: " + gpbf);
+         }
+ 
         compressionMethod = it.readShort() & 0xffff;
         time = it.readShort() & 0xffff;
         modDate = it.readShort() & 0xffff;
