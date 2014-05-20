@@ -79,7 +79,6 @@ core_test_files := \
 include $(CLEAR_VARS)
 
 LOCAL_CFLAGS += -Wall -Wextra -Werror
-LOCAL_CFLAGS += -Wno-error=strict-aliasing
 LOCAL_CFLAGS += $(core_cflags)
 LOCAL_CPPFLAGS += $(core_cppflags)
 LOCAL_SRC_FILES += $(core_src_files)
